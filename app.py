@@ -34,11 +34,10 @@ st.markdown("""
 st.title("📱 GEX Mobile: EWZ ➔ WIN")
 st.markdown("Leitura de Gamma Levels e projeção institucional na palma da mão.")
 
-# --- SEÇÃO 1: INPUTS E DADOS (TELA PRINCIPAL PARA FACILITAR NO IPHONE) ---
+# --- SEÇÃO 1: INPUTS E DADOS ---
 with st.expander("📂 1. Carregar Dados & Fechamentos", expanded=True):
     uploaded_file = st.file_uploader("Enviar CSV da CBOE (ex: ewz.csv)", type=["csv"])
     
-    # Inputs de Fechamento D-1
     col_in1, col_in2 = st.columns(2)
     with col_in1:
         fechamento_ewz_input = st.number_input("Fech EWZ (D-1):", value=35.00, format="%.2f")
@@ -91,7 +90,6 @@ if uploaded_file is not None:
         df['volume'] = pd.to_numeric(df['volume'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
         df['volume.1'] = pd.to_numeric(df['volume.1'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
 
-        # Filtro de Vencimento (Seleciona o primeiro por padrão para agilizar no mobile)
         all_exp_dates = sorted(df['expiration date'].dropna().unique())
         selected_exp_dates = st.multiselect("Vencimentos:", options=all_exp_dates, default=all_exp_dates[0:1])
 
@@ -128,17 +126,21 @@ if uploaded_file is not None:
             gamma_risk_mini = fechamento_mini_input * (1 + (dist_risk_pct / 100))
             hvl_mini = fechamento_mini_input * (1 + (dist_hvl_pct / 100))
 
-            # --- PAINEL DE METRICAS (OTIMIZADO PARA VERTICAL) ---
+            # Função auxiliar para formatar no padrão brasileiro (ex: 204.100,50)
+            def fmt_win(val):
+                return f"{val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+            # --- PAINEL DE METRICAS ---
             st.markdown("---")
             st.subheader("🎯 Metas Projetadas para o Mini Índice")
             
-            st.metric("🏢 Put Wall (Suporte)", f"{put_wall_mini:,.0f}".replace(",", "."), delta=f"{dist_put_pct:+.2f}% EWZ")
-            st.metric("📊 HVL (Nó de Volume)", f"{hvl_mini:,.0f}".replace(",", "."), delta=f"{dist_hvl_pct:+.2f}% EWZ")
-            st.metric("⚡ Gamma Flip (Inflexão)", f"{gamma_flip_mini:,.0f}".replace(",", "."), delta=f"{dist_flip_pct:+.2f}% EWZ")
-            st.metric("🚨 Gamma Risk (Risco)", f"{gamma_risk_mini:,.0f}".replace(",", "."), delta=f"{dist_risk_pct:+.2f}% EWZ")
-            st.metric("🏢 Call Wall (Resistência)", f"{call_wall_mini:,.0f}".replace(",", "."), delta=f"{dist_call_pct:+.2f}% EWZ")
+            st.metric("🏢 Put Wall (Suporte)", fmt_win(put_wall_mini), delta=f"{dist_put_pct:+.2f}% EWZ")
+            st.metric("📊 HVL (Nó de Volume)", fmt_win(hvl_mini), delta=f"{dist_hvl_pct:+.2f}% EWZ")
+            st.metric("⚡ Gamma Flip (Inflexão)", fmt_win(gamma_flip_mini), delta=f"{dist_flip_pct:+.2f}% EWZ")
+            st.metric("🚨 Gamma Risk (Risco)", fmt_win(gamma_risk_mini), delta=f"{dist_risk_pct:+.2f}% EWZ")
+            st.metric("🏢 Call Wall (Resistência)", fmt_win(call_wall_mini), delta=f"{dist_call_pct:+.2f}% EWZ")
 
-            # --- GRÁFICOS COMPactos PARA MOBILE ---
+            # --- GRÁFICOS ---
             st.markdown("---")
             st.subheader("📈 Exposição por Strike")
             
@@ -155,10 +157,10 @@ if uploaded_file is not None:
             st.markdown("---")
             st.subheader("🧠 Plano Operacional")
             st.markdown(f"""
-            * **Call Wall ({call_wall_mini:,.0f}):** Venda de topo / exaustão de alta.
-            * **Put Wall ({put_wall_mini:,.0f}):** Compra de suporte / repique.
-            * **Gamma Flip ({gamma_flip_mini:,.0f}):** Gatilho de volatilidade (Positivo x Negativo).
-            * **HVL ({hvl_mini:,.0f}):** Ponto magnético de maior liquidez.
+            * **Call Wall ({fmt_win(call_wall_mini)}):** Venda de topo / exaustão de alta.
+            * **Put Wall ({fmt_win(put_wall_mini)}):** Compra de suporte / repique.
+            * **Gamma Flip ({fmt_win(gamma_flip_mini)}):** Gatilho de volatilidade (Positivo x Negativo).
+            * **HVL ({fmt_win(hvl_mini)}):** Ponto magnético de maior liquidez.
             """)
 
         else:
