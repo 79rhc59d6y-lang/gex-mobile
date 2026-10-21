@@ -10,7 +10,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# Estilização CSS para melhor visualização no iPhone
+# Estilização CSS para melhor visualização no telemóvel
 st.markdown("""
 <style>
     .main .block-container {
@@ -126,11 +126,11 @@ if uploaded_file is not None:
             gamma_risk_mini = fechamento_mini_input * (1 + (dist_risk_pct / 100))
             hvl_mini = fechamento_mini_input * (1 + (dist_hvl_pct / 100))
 
-            # Função para formatar o Mini Índice sem casas decimais decimais (ex: 204.100)
+            # Função para formatar os pontos do Mini Índice (ex: 204.100)
             def fmt_win(val):
                 return f"{val:,.0f}".replace(",", ".")
 
-            # --- PAINEL DE METRICAS ---
+            # --- PAINEL DE MÉTRICAS ---
             st.markdown("---")
             st.subheader("🎯 Metas Projetadas para o Mini Índice")
             
@@ -153,15 +153,43 @@ if uploaded_file is not None:
             fig_oi.update_layout(barmode='relative', height=300, margin=dict(l=10, r=10, t=10, b=10), template='plotly_white')
             st.plotly_chart(fig_oi, use_container_width=True)
 
-            # --- PLANO DE AÇÃO OPERACIONAL ---
+            # --- LEITURA DE MERCADO E PLANO DE AÇÃO DETALHADO ---
             st.markdown("---")
-            st.subheader("🧠 Plano Operacional")
+            st.subheader("🧠 Leitura de Mercado e Plano Operacional")
+            
             st.markdown(f"""
-            * **Call Wall ({fmt_win(call_wall_mini)}):** Venda de topo / exaustão de alta.
-            * **Put Wall ({fmt_win(put_wall_mini)}):** Compra de suporte / repique.
-            * **Gamma Flip ({fmt_win(gamma_flip_mini)}):** Gatilho de volatilidade (Positivo x Negativo).
-            * **HVL ({fmt_win(hvl_mini)}):** Ponto magnético de maior liquidez.
+            ### 🏢 1. Barreiras de Contenção (Walls & HVL)
+            * **Call Wall (EWZ: {call_wall} | Mini: {fmt_win(call_wall_mini)}):** 
+                * *Leitura:* Zona de forte resistência devido ao hedge massivo dos dealers em calls.
+                * *O que fazer:* Procure **vendas de topo / exaustão** ou realização de lucros nas proximidades.
+            * **Put Wall (EWZ: {put_wall} | Mini: {fmt_win(put_wall_mini)}):** 
+                * *Leitura:* Zona de suporte primário com alta concentração de puts vendidas.
+                * *O que fazer:* Excelente região para procurar **compras de repique / suporte**.
+            * **HVL - High Volume Level (EWZ: {hvl_strike} | Mini: {fmt_win(hvl_mini)}):** 
+                * *Leitura:* Ponto de maior concentração total de contratos negociados.
+                * *O que fazer:* Funciona como um **ímã de liquidez**. Fique atento ao comportamento do preço.
             """)
+
+            st.markdown(f"""
+            ### ⚡ 2. Pontos de Virada e Risco (Flip & Risk)
+            * **Gamma Flip (EWZ: {gamma_flip} | Mini: {fmt_win(gamma_flip_mini)}):** 
+                * *Leitura:* Ponto crítico de mudança de regime de volatilidade.
+                * *O que fazer:* Acima deste nível, o mercado é amortecido. Abaixo dele, entra em *short gamma* (aceleração de quedas). **Monitore como gatilho.**
+            * **Gamma Risk (EWZ: {gamma_risk} | Mini: {fmt_win(gamma_risk_mini)}):** 
+                * *Leitura:* Zona de maior fluxo de volatilidade e risco direcional extremo.
+                * *O que fazer:* Evite operações contra a tendência caso o preço rompa esta região.
+            """)
+
+            # --- TABELA DE NÍVEIS RESUMIDA ---
+            st.markdown("---")
+            st.subheader("🏛️ Resumo Técnico dos Níveis")
+            niveis_data = {
+                "Nível": ["Call Wall", "Put Wall", "HVL", "Gamma Flip", "Gamma Risk"],
+                "Strike EWZ": [call_wall, put_wall, hvl_strike, gamma_flip, gamma_risk],
+                "Distância %": [f"{dist_call_pct:+.2f}%", f"{dist_put_pct:+.2f}%", f"{dist_hvl_pct:+.2f}%", f"{dist_flip_pct:+.2f}%", f"{dist_risk_pct:+.2f}%"],
+                "Projeção WIN": [fmt_win(call_wall_mini), fmt_win(put_wall_mini), fmt_win(hvl_mini), fmt_win(gamma_flip_mini), fmt_win(gamma_risk_mini)]
+            }
+            st.dataframe(pd.DataFrame(niveis_data), use_container_width=True)
 
         else:
             st.warning("Selecione um vencimento válido.")
