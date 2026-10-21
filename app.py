@@ -126,9 +126,9 @@ if uploaded_file is not None:
             gamma_risk_mini = fechamento_mini_input * (1 + (dist_risk_pct / 100))
             hvl_mini = fechamento_mini_input * (1 + (dist_hvl_pct / 100))
 
-            # Função auxiliar para formatar no padrão brasileiro (ex: 204.100,50)
+            # Função para formatar o Mini Índice sem casas decimais decimais (ex: 204.100)
             def fmt_win(val):
-                return f"{val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                return f"{val:,.0f}".replace(",", ".")
 
             # --- PAINEL DE METRICAS ---
             st.markdown("---")
